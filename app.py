@@ -1,29 +1,31 @@
 from flask import Flask, request, send_file, render_template
 import os
 import yt_dlp
-import time
+from youtube_search import YoutubeSearch
 import uuid
+import time
 
 app = Flask(__name__)
 
 def search_youtube(query):
-    search_url = f"ytsearch1:{query}"
-    ydl_opts = {"quiet": True, "skip_download": True}
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(search_url, download=False)
-        if not info or "entries" not in info or not info["entries"]:
-            return None
-        video = info["entries"][0]
-        return {
-            "title": video["title"],
-            "url": f"https://youtube.com/watch?v={video['id']}"
-        }
+    results = YoutubeSearch(query, max_results=1).to_dict()
+    if not results:
+        return None
+    video = results[0]
+    return {
+        "title": video["title"],
+        "url": f"https://youtube.com{video['url_suffix']}"
+    }
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        query = request.form["query"]
-        media_type = request.form["media_type"]  # "audio" or "video"
+        query = request.form.get("query")
+        media_type = request.form.get("media_type")
+        
+        if not query or not media_type:
+            return "Missing query or media type", 400
+        
         result = search_youtube(query)
         if not result:
             return "No results found."
@@ -37,14 +39,15 @@ def index():
                 "format": "bestaudio[ext=m4a]/bestaudio",
                 "outtmpl": filename,
                 "quiet": True,
+                "noplaylist": True,
             }
-        else:  # video
+        else:
             filename += ".mp4"
             ydl_opts = {
-                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+                "format": "best[ext=mp4]/best",
                 "outtmpl": filename,
                 "quiet": True,
-                "merge_output_format": "mp4"
+                "noplaylist": True,
             }
 
         try:
