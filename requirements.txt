@@ -1,3 +1,5 @@
 Flask
 youtube_dl
-youtube-search-python
+youtube_search
+pyrogram
+requests
