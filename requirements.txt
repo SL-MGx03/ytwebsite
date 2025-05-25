@@ -3,3 +3,4 @@ youtube_dl
 youtube_search
 pyrogram
 requests
+gunicorn
