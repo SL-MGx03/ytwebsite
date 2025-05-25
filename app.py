@@ -2,11 +2,16 @@ import os
 import time
 import uuid
 import asyncio
+import traceback
+import nest_asyncio
 
 from flask import Flask, request, send_file, render_template
 from youtube_search import YoutubeSearch
 import yt_dlp
 from playwright.async_api import async_playwright
+
+# Apply nest_asyncio to allow asyncio event loop re-entry (fix for Heroku)
+nest_asyncio.apply()
 
 app = Flask(__name__)
 
@@ -49,11 +54,14 @@ def index():
             return "No results found."
 
         video_url = result["url"]
-        
+
         # Use Playwright to simulate browser, avoid bot detection
         try:
-            video_url = asyncio.run(prepare_page(video_url))
+            loop = asyncio.get_event_loop()
+            video_url = loop.run_until_complete(prepare_page(video_url))
         except Exception as e:
+            tb = traceback.format_exc()
+            print("Playwright error traceback:\n", tb)
             return f"Playwright error: {str(e)}"
 
         filename = f"{uuid.uuid4().hex}"
@@ -80,6 +88,8 @@ def index():
 
             return send_file(filename, as_attachment=True)
         except Exception as e:
+            tb = traceback.format_exc()
+            print("yt-dlp error traceback:\n", tb)
             return f"yt-dlp error: {str(e)}"
         finally:
             time.sleep(1)
