@@ -1,13 +1,31 @@
-from flask import Flask, request, send_file, render_template
 import os
-import yt_dlp
-from youtube_search import YoutubeSearch
-import uuid
 import time
+import uuid
+import asyncio
+
+from flask import Flask, request, send_file, render_template
+from youtube_search import YoutubeSearch
+import yt_dlp
+from playwright.async_api import async_playwright
 
 app = Flask(__name__)
 
-def search_youtube(query):
+async def ensure_playwright_browser_ready(url: str) -> str:
+    # Launch browser headless with no sandbox (required on Heroku)
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox"]
+        )
+        context = await browser.new_context()
+        page = await context.new_page()
+        await page.goto(url)
+        # Wait for video element or page load
+        await page.wait_for_selector("video", timeout=10000)
+        await browser.close()
+        return url
+
+def search_youtube(query: str):
     results = YoutubeSearch(query, max_results=1).to_dict()
     if not results:
         return None
@@ -22,17 +40,20 @@ def index():
     if request.method == "POST":
         query = request.form.get("query")
         media_type = request.form.get("media_type")
-        
+
         if not query or not media_type:
             return "Missing query or media type", 400
-        
+
+        # Search for video
         result = search_youtube(query)
         if not result:
             return "No results found."
-        
-        url = result["url"]
-        filename = f"{uuid.uuid4().hex}"
 
+        video_url = result["url"]
+        # Use Playwright to "simulate" browser and bypass bot detection
+        video_url = asyncio.run(ensure_playwright_browser_ready(video_url))
+
+        filename = f"{uuid.uuid4().hex}"
         if media_type == "audio":
             filename += ".m4a"
             ydl_opts = {
@@ -52,11 +73,13 @@ def index():
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+                ydl.download([video_url])
+
             return send_file(filename, as_attachment=True)
         except Exception as e:
             return f"Error: {str(e)}"
         finally:
+            # Small delay before removing file (to ensure send_file completed)
             time.sleep(1)
             if os.path.exists(filename):
                 os.remove(filename)
