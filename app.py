@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file, render_template
 import os
-import youtube_dl
+import yt_dlp as youtube_dl
 import time
 import uuid
 
