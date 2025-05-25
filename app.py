@@ -10,8 +10,7 @@ from playwright.async_api import async_playwright
 
 app = Flask(__name__)
 
-async def ensure_playwright_browser_ready(url: str) -> str:
-    # Launch browser headless with no sandbox (required on Heroku)
+async def prepare_page(url: str) -> str:
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
@@ -20,7 +19,7 @@ async def ensure_playwright_browser_ready(url: str) -> str:
         context = await browser.new_context()
         page = await context.new_page()
         await page.goto(url)
-        # Wait for video element or page load
+        # Wait for video element to load (up to 10 seconds)
         await page.wait_for_selector("video", timeout=10000)
         await browser.close()
         return url
@@ -44,14 +43,18 @@ def index():
         if not query or not media_type:
             return "Missing query or media type", 400
 
-        # Search for video
+        # Search YouTube video
         result = search_youtube(query)
         if not result:
             return "No results found."
 
         video_url = result["url"]
-        # Use Playwright to "simulate" browser and bypass bot detection
-        video_url = asyncio.run(ensure_playwright_browser_ready(video_url))
+        
+        # Use Playwright to simulate browser, avoid bot detection
+        try:
+            video_url = asyncio.run(prepare_page(video_url))
+        except Exception as e:
+            return f"Playwright error: {str(e)}"
 
         filename = f"{uuid.uuid4().hex}"
         if media_type == "audio":
@@ -77,9 +80,8 @@ def index():
 
             return send_file(filename, as_attachment=True)
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"yt-dlp error: {str(e)}"
         finally:
-            # Small delay before removing file (to ensure send_file completed)
             time.sleep(1)
             if os.path.exists(filename):
                 os.remove(filename)
