@@ -1,6 +1,5 @@
-Flask
-yt-dlp
-youtube_search
-pyrogram
-requests
-gunicorn
+Flask==2.2.5
+yt-dlp==2025.05.25
+youtube_search==1.6.6
+playwright==1.34.0
+gunicorn==20.1.0
