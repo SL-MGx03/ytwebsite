@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>YouTube Downloader</title>
 </head>
 <body>
     <h1>YouTube Downloader</h1>
-    <form method="POST" action="/">
-        <input type="text" name="query" placeholder="Search YouTube" required />
-        <select name="media_type" required>
-            <option value="audio">Audio (M4A)</option>
-            <option value="video">Video (MP4)</option>
-        </select>
+    <form method="POST">
+        <label for="query">Search query or video URL:</label><br />
+        <input type="text" id="query" name="query" required /><br /><br />
+
+        <label>Media type:</label><br />
+        <input type="radio" id="audio" name="media_type" value="audio" checked />
+        <label for="audio">Audio (m4a)</label><br />
+        <input type="radio" id="video" name="media_type" value="video" />
+        <label for="video">Video (mp4)</label><br /><br />
+
         <button type="submit">Download</button>
     </form>
 </body>
