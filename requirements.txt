@@ -1,5 +1,5 @@
 Flask
-youtube_dl
+yt-dlp
 youtube_search
 pyrogram
 requests
