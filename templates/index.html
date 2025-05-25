@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>YouTube Downloader</title>
+    <meta charset="UTF-8" />
+    <title>YouTube Downloader</title>
 </head>
 <body>
-  <h1>YouTube Downloader</h1>
-  <form method="POST">
-    <label>YouTube URL:</label><br>
-    <input type="text" name="url" placeholder="https://youtube.com/watch?v=..." required><br><br>
-
-    <label>Download as:</label><br>
-    <input type="radio" name="media_type" value="audio" checked> Audio (.m4a)<br>
-    <input type="radio" name="media_type" value="video"> Video (.mp4)<br><br>
-
-    <button type="submit">Download</button>
-  </form>
+    <h1>YouTube Downloader</h1>
+    <form method="POST" action="/">
+        <input type="text" name="query" placeholder="Search YouTube" required />
+        <select name="media_type" required>
+            <option value="audio">Audio (M4A)</option>
+            <option value="video">Video (MP4)</option>
+        </select>
+        <button type="submit">Download</button>
+    </form>
 </body>
 </html>
