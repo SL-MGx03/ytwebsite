@@ -1,5 +1,6 @@
 Flask
 yt-dlp
-youtube_search
+youtube-search-python
 playwright
+nest_asyncio
 gunicorn
