@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Downloader</title>
+    <style>
+        body { font-family: Arial, text-align: center; margin-top: 50px; }
+        input, select { padding: 10px; width: 300px; margin: 5px 0; }
+        button { padding: 10px 20px; }
+    </style>
+</head>
+<body>
+    <h2>🎧 YouTube Downloader</h2>
+    <form method="POST">
+        <input type="text" name="query" placeholder="Enter song or video name" required><br>
+        <select name="media_type" required>
+            <option value="audio">Audio (m4a)</option>
+            <option value="video">Video (mp4)</option>
+        </select><br>
+        <button type="submit">Download</button>
+    </form>
+</body>
+</html>
