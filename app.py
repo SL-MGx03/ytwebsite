@@ -1,21 +1,27 @@
 from flask import Flask, request, send_file, render_template
 import os
 import youtube_dl
-from youtube_search import YoutubeSearch
 import time
 import uuid
 
 app = Flask(__name__)
 
 def search_youtube(query):
-    results = YoutubeSearch(query, max_results=1).to_dict()
-    if not results:
-        return None
-    video = results[0]
-    return {
-        "title": video["title"],
-        "url": f"https://youtube.com{video['url_suffix']}"
+    ydl_opts = {
+        'quiet': True,
+        'skip_download': True,
+        'default_search': 'ytsearch1',
     }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(query, download=False)
+        if 'entries' in info and len(info['entries']) > 0:
+            video = info['entries'][0]
+            return {
+                "title": video.get('title'),
+                "url": video.get('webpage_url')
+            }
+        else:
+            return None
 
 @app.route("/", methods=["GET", "POST"])
 def index():
